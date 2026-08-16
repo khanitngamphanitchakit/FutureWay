@@ -17,86 +17,8 @@
     <span class="page-title">ค้นหาตัวเอง</span>
   </header>
 
-  <!-- Step Progress Bar -->
-  <div class="step-bar">
-    <div class="step active" id="step1">
-      <div class="step-circle">1</div>
-      <span class="step-label">กรอกเกรด</span>
-    </div>
-    <div class="step-line" id="line1"></div>
-    <div class="step" id="step2">
-      <div class="step-circle">2</div>
-      <span class="step-label">แบบทดสอบ</span>
-    </div>
-  </div>
-
-  <!-- ===== SECTION 1: กรอกเกรด ===== -->
-  <div id="section-grade">
-    <div class="quiz-content">
-      <p class="quiz-section-title">📝 กรอกเกรดวิชาของคุณ</p>
-
-      <div class="grade-card">
-
-        <div class="grade-row">
-          <div class="grade-subject">
-            <div class="subject-icon math"><i class="fas fa-square-root-alt"></i></div>
-            <span class="subject-name">คณิตศาสตร์</span>
-          </div>
-          <input class="grade-input" type="number" id="g-math" min="0" max="4" step="0.01" placeholder="0.00">
-        </div>
-
-        <div class="grade-row">
-          <div class="grade-subject">
-            <div class="subject-icon sci"><i class="fas fa-flask"></i></div>
-            <span class="subject-name">วิทยาศาสตร์</span>
-          </div>
-          <input class="grade-input" type="number" id="g-sci" min="0" max="4" step="0.01" placeholder="0.00">
-        </div>
-
-        <div class="grade-row">
-          <div class="grade-subject">
-            <div class="subject-icon eng"><i class="fas fa-language"></i></div>
-            <span class="subject-name">ภาษาอังกฤษ</span>
-          </div>
-          <input class="grade-input" type="number" id="g-eng" min="0" max="4" step="0.01" placeholder="0.00">
-        </div>
-
-        <div class="grade-row">
-          <div class="grade-subject">
-            <div class="subject-icon thai"><i class="fas fa-book"></i></div>
-            <span class="subject-name">ภาษาไทย</span>
-          </div>
-          <input class="grade-input" type="number" id="g-thai" min="0" max="4" step="0.01" placeholder="0.00">
-        </div>
-
-        <div class="grade-row">
-          <div class="grade-subject">
-            <div class="subject-icon social"><i class="fas fa-globe-asia"></i></div>
-            <span class="subject-name">สังคมศึกษา</span>
-          </div>
-          <input class="grade-input" type="number" id="g-social" min="0" max="4" step="0.01" placeholder="0.00">
-        </div>
-
-        <div class="grade-row">
-          <div class="grade-subject">
-            <div class="subject-icon art"><i class="fas fa-paint-brush"></i></div>
-            <span class="subject-name">ศิลปะ</span>
-          </div>
-          <input class="grade-input" type="number" id="g-art" min="0" max="4" step="0.01" placeholder="0.00">
-        </div>
-
-      </div>
-
-      <p class="error-msg" id="grade-error">⚠️ กรุณากรอกเกรดให้ครบทุกวิชา (0.00 - 4.00)</p>
-    </div>
-
-    <div class="quiz-submit-wrap">
-      <button class="quiz-next-btn" onclick="goToMBTI()">ถัดไป → ทำแบบทดสอบ</button>
-    </div>
-  </div>
-
-  <!-- ===== SECTION 2: MBTI ===== -->
-  <div id="section-mbti" hidden>
+  <!-- ===== แบบทดสอบ MBTI (ไม่ต้องกรอกเกรดแล้ว — คำนวณจาก MBTI 100%) ===== -->
+  <div id="section-mbti">
     <div class="quiz-content">
       <p class="quiz-section-title">🧠 แบบทดสอบบุคลิกภาพ MBTI</p>
 
@@ -234,40 +156,6 @@
       }, 0);
     }
 
-    // ไปหน้า MBTI
-    function goToMBTI() {
-      const subjects = ['g-math','g-sci','g-eng','g-thai','g-social','g-art'];
-      let valid = true;
-
-      subjects.forEach(id => {
-        const el = document.getElementById(id);
-        const val = parseFloat(el.value);
-        if (el.value === '' || isNaN(val) || val < 0 || val > 4) {
-          el.classList.add('error');
-          valid = false;
-        } else {
-          el.classList.remove('error');
-        }
-      });
-
-      if (!valid) {
-        document.getElementById('grade-error').classList.add('show');
-        return;
-      }
-
-      document.getElementById('grade-error').classList.remove('show');
-      document.getElementById('section-grade').hidden = true;
-      document.getElementById('section-mbti').hidden  = false;
-
-      document.getElementById('step1').classList.remove('active');
-      document.getElementById('step1').classList.add('done');
-      document.getElementById('step1').querySelector('.step-circle').innerHTML = '<i class="fas fa-check step-check"></i>';
-      document.getElementById('line1').classList.add('done');
-      document.getElementById('step2').classList.add('active');
-
-      window.scrollTo(0, 0);
-    }
-
     // Submit ทั้งหมด
     function submitQuiz() {
       if (totalQuestions === 0) {
@@ -310,15 +198,6 @@
       document.getElementById('mbti-error').classList.remove('show');
       document.querySelectorAll('.mbti-card').forEach(c => c.style.border = '');
 
-      const grades = {
-        math:   parseFloat(document.getElementById('g-math').value),
-        sci:    parseFloat(document.getElementById('g-sci').value),
-        eng:    parseFloat(document.getElementById('g-eng').value),
-        thai:   parseFloat(document.getElementById('g-thai').value),
-        social: parseFloat(document.getElementById('g-social').value),
-        art:    parseFloat(document.getElementById('g-art').value),
-      };
-
       // ส่งคำตอบดิบ (question_id + selected 'A'/'B') ไปให้ backend คำนวณ MBTI เอง
       // แทนที่จะคำนวณเสร็จแล้วส่งแค่ผลลัพธ์ — กันผู้ใช้แก้ค่าจาก dev console
       // และให้ตรงกับ logic การนับคะแนนที่ decision_tree.py ใช้อยู่จุดเดียว
@@ -330,8 +209,6 @@
         });
       }
 
-      sessionStorage.setItem('grades', JSON.stringify(grades));
-
       const btn = document.querySelector('.quiz-submit-btn');
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังประมวลผล...';
@@ -340,7 +217,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ grades, answers: answersPayload })
+        body: JSON.stringify({ answers: answersPayload })
       })
       .then(r => r.json())
       .then(data => {

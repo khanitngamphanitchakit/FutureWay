@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 FutureWay - Decision Tree
-รับ input: เกรด 6 วิชา + MBTI type
-ส่ง output: JSON สาขาที่แนะนำ 3 อันดับ
+รับ input: คำตอบแบบทดสอบ MBTI (หรือรหัส MBTI ที่คำนวณแล้ว)
+ส่ง output: JSON สาขาที่แนะนำ 3 อันดับ (คิดคะแนนจาก MBTI 100%)
 """
 
 import sys
@@ -21,13 +21,15 @@ import mysql.connector
 
 # ========================================
 # ตั้งค่าเชื่อมต่อ Database
+# อ่านจาก environment variable ของ Railway ก่อน (ชุดเดียวกับ php/db_config.php)
+# -> ย้ายไป Railway account ใหม่ได้โดยไม่ต้องแก้โค้ด แค่ผูกตัวแปร MYSQL* ให้ service
 # ========================================
 DB_CONFIG = {
-    'host':     'mysql.railway.internal',
-    'port':     3306,
-    'user':     'root',
-    'password': 'OLdaGruletpcPRSKSZkUOUrKaUWmDjri',
-    'database': 'railway'      # ต้องตรงกับ DB ที่ไฟล์ PHP ทุกไฟล์ใช้ (railway)
+    'host':     os.getenv('MYSQLHOST')     or 'mysql.railway.internal',
+    'port':     int(os.getenv('MYSQLPORT') or 3306),
+    'user':     os.getenv('MYSQLUSER')     or 'root',
+    'password': os.getenv('MYSQLPASSWORD') or '',
+    'database': os.getenv('MYSQLDATABASE') or 'railway'  # ต้องตรงกับ DB ที่ไฟล์ PHP ทุกไฟล์ใช้
 }
 
 # ========================================
@@ -138,33 +140,26 @@ def resolve_mbti_from_answers(answers):
 # Decision Tree Logic
 # ========================================
 # ----------------------------------------
-# สัดส่วนคะแนน (รวม 100): MBTI เป็นตัวหลัก 60 : เกรด 40
+# สัดส่วนคะแนน: MBTI 100% (ไม่ใช้เกรดในการคำนวณแล้ว)
 #
 # MBTI ให้คะแนนตาม "ลำดับในลิสต์ mbti_match" ของสาขา (ตัวแรก = เข้ากันที่สุด)
 # เพื่อให้สาขาในกลุ่มบุคลิกเดียวกันได้คะแนนลดหลั่น ไม่กองเท่ากันหมด
-# ส่วนเกรดใช้เลขชี้กำลัง (GRADE_CURVE) ถ่างคะแนนให้ต่างกันชัดขึ้น
-# ผลคือ % อันดับ 1-2-3 ห่างกันอย่างมีความหมาย ไม่ใช่ 98.3/98.3/98.2
+# ถ้าไม่อยู่ในลิสต์เลย ให้คะแนนตามจำนวนตัวอักษร MBTI ที่ตรงบางส่วน
 # ----------------------------------------
-MBTI_POSITION_SCORES = [60, 56, 52, 48, 44]  # คะแนนตามลำดับใน mbti_match
-MBTI_PARTIAL_MAX     = 40   # ไม่อยู่ในลิสต์: (ตัวอักษรตรงมากสุด/4) x ค่านี้ (ตรง 3/4 = 30)
-GRADE_SCORE_MAX      = 40   # ส่วนเกรดถ่วงน้ำหนัก
-GRADE_CURVE          = 1.5  # เลขชี้กำลังถ่างช่วงคะแนนเกรด (1.0 = เส้นตรงแบบเดิม)
-BELOW_MIN_PENALTY    = 8    # หักต่อวิชาที่เกรดต่ำกว่าขั้นต่ำของสาขา
+MBTI_POSITION_SCORES = [100, 90, 80, 70, 60]  # คะแนนตามลำดับใน mbti_match
+MBTI_PARTIAL_MAX     = 50   # ไม่อยู่ในลิสต์: (ตัวอักษรตรงมากสุด/4) x ค่านี้ (ตรง 3/4 = 37.5)
 
 
-def calculate_score(branch, grades, mbti):
+def calculate_score(branch, mbti):
     """
-    คำนวณคะแนนความเหมาะสมของสาขา (0-100)
+    คำนวณคะแนนความเหมาะสมของสาขา (0-100) จาก MBTI ล้วนๆ
 
-    สูตร (MBTI เป็นตัวหลัก 60:40):
-    1. MBTI อยู่ในลิสต์ของสาขา ได้ตามลำดับความเข้ากัน 60/56/52/48/44
-       ไม่อยู่ในลิสต์ ได้ตามตัวอักษรที่ตรงบางส่วน สูงสุด 30
-    2. เกรดถ่วงน้ำหนักตามวิชาเด่นของสาขา เต็ม 40 (ยกกำลัง 1.5 ให้คะแนนถ่างขึ้น)
-    3. เกรดต่ำกว่าขั้นต่ำของสาขา หัก 8 ต่อวิชา
+    สูตร (MBTI 100%):
+    1. MBTI อยู่ในลิสต์ของสาขา ได้ตามลำดับความเข้ากัน 100/90/80/70/60
+    2. ไม่อยู่ในลิสต์ ได้ตามตัวอักษรที่ตรงบางส่วน สูงสุด 50
     """
     score = 0
 
-    # --- Step 1: MBTI Score (ตัวหลัก, สูงสุด 60 คะแนน) ---
     mbti_match = json.loads(branch['mbti_match']) if isinstance(branch['mbti_match'], str) else branch['mbti_match']
 
     if mbti in mbti_match:
@@ -179,37 +174,10 @@ def calculate_score(branch, grades, mbti):
             partial = max(partial, match_count)
         score += (partial / 4) * MBTI_PARTIAL_MAX
 
-    # --- Step 2: เช็คเกรดขั้นต่ำ ---
-    grade_keys = ['math', 'sci', 'eng', 'thai', 'social', 'art']
-    min_keys   = ['min_math', 'min_sci', 'min_eng', 'min_thai', 'min_social', 'min_art']
-
-    below_min = False
-    for gk, mk in zip(grade_keys, min_keys):
-        min_val = float(branch[mk])
-        if min_val > 0 and float(grades[gk]) < min_val:
-            below_min = True
-            score -= BELOW_MIN_PENALTY  # หักคะแนนถ้าเกรดต่ำกว่าขั้นต่ำ
-
-    # --- Step 3: Weighted Grade Score (40 คะแนน) ---
-    weight_keys = ['weight_math', 'weight_sci', 'weight_eng',
-                   'weight_thai', 'weight_social', 'weight_art']
-
-    total_weight    = sum(float(branch[wk]) for wk in weight_keys)
-    weighted_score  = 0
-
-    for gk, wk in zip(grade_keys, weight_keys):
-        grade  = float(grades[gk])
-        weight = float(branch[wk])
-        weighted_score += (grade / 4.0) * weight  # normalize เป็น 0-1
-
-    if total_weight > 0:
-        ratio = weighted_score / total_weight          # 0-1
-        score += (ratio ** GRADE_CURVE) * GRADE_SCORE_MAX
-
     return round(max(0, min(100, score)), 2)
 
 
-def run_decision_tree(grades, mbti):
+def run_decision_tree(mbti):
     """
     รัน Decision Tree หลัก
     ส่งคืน top 3 สาขาที่เหมาะสมที่สุด
@@ -232,7 +200,7 @@ def run_decision_tree(grades, mbti):
     # คำนวณคะแนนทุกสาขา
     results = []
     for branch in branches:
-        score = calculate_score(branch, grades, mbti)
+        score = calculate_score(branch, mbti)
         results.append({
             'id':          branch['id'],
             'name':        branch['name'],
@@ -245,26 +213,8 @@ def run_decision_tree(grades, mbti):
     results.sort(key=lambda x: x['score'], reverse=True)
     top3 = results[:3]
 
-    # Decision Tree Rule เพิ่มเติม (ปรับ label)
-    avg_grade = sum(float(grades[k]) for k in grades) / len(grades)
-    
-    # ถ้าเกรดเฉลี่ยสูงมาก (≥ 3.5) และ MBTI เป็นสาย T → boost สายวิทย์
-    # รวมชื่อคณะสายวิทย์ของข้อมูลชุด NRRU (004_nrru_branches.sql) ด้วย
-    # ไม่งั้นสาขาใหม่จะไม่เคยเข้าเงื่อนไขนี้เลย
-    science_faculties = [
-        'วิศวกรรมศาสตร์', 'แพทยศาสตร์', 'วิทยาศาสตร์',
-        'วิทยาศาสตร์และเทคโนโลยี', 'เทคโนโลยีอุตสาหกรรม',
-        'สาธารณสุขศาสตร์', 'พยาบาลศาสตร์',
-    ]
-    if avg_grade >= 3.5 and mbti[2] == 'T':
-        for r in top3:
-            if r['faculty'] in science_faculties:
-                r['score'] = min(100, r['score'] + 5)
-                r['note']  = '⭐ เกรดดีและบุคลิกเหมาะมาก'
-
     return {
         'mbti':      mbti,
-        'avg_grade': round(avg_grade, 2),
         # จำนวนสาขาทั้งหมดที่ถูกคำนวณคะแนนในรอบนี้ (ทุกแถว is_active = 1)
         # ไว้เช็คได้ว่าข้อมูลสาขาชุดใหม่ถูกนำมาคิดครบจริง
         'branches_considered': len(results),
@@ -280,8 +230,9 @@ if __name__ == '__main__':
         # รับ JSON จาก PHP ผ่าน stdin
         input_data = sys.stdin.read()
         data       = json.loads(input_data)
-        
-        grades = data['grades']  # {'math': 3.5, 'sci': 3.0, ...}
+
+        # หมายเหตุ: ไม่ใช้เกรดในการคำนวณแล้ว (MBTI 100%)
+        # ถ้า caller เก่ายังส่ง data['grades'] มาด้วย จะถูกเมินเฉยๆ ไม่ error
 
         mbti_detail = None
 
@@ -307,7 +258,7 @@ if __name__ == '__main__':
             # โหมดเดิม: รับรหัส MBTI ที่คำนวณมาแล้ว เช่น 'INTJ'
             mbti = data['mbti']
 
-        result = run_decision_tree(grades, mbti)
+        result = run_decision_tree(mbti)
 
         if mbti_detail is not None:
             result['mbti_detail'] = mbti_detail

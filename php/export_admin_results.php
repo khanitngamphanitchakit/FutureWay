@@ -9,7 +9,7 @@
 //   q, gender, mbti   ตัวกรอง — ใช้เมื่อ scope=filtered (ชุดเดียวกับ get_admin_results.php)
 //
 // ไฟล์ที่ได้มี 2 ชีต
-//   1) ผลการทำแบบทดสอบ — 1 แถวต่อ 1 รอบ พร้อมเกรดรายวิชาและสาขาที่แนะนำครบ 3 อันดับ
+//   1) ผลการทำแบบทดสอบ — 1 แถวต่อ 1 รอบ พร้อมผล MBTI และสาขาที่แนะนำครบ 3 อันดับ
 //   2) สรุปสถิติ        — ยอดรวม + แยกตามเพศ / MBTI / สาขา
 //
 // ไม่แบ่งหน้าเหมือน get_admin_results.php เพราะจุดประสงค์คือเอาข้อมูลไปทำต่อ
@@ -38,16 +38,6 @@ require_once __DIR__ . '/db_config.php';
 require_once __DIR__ . '/admin_filter.php';
 require_once __DIR__ . '/xlsx_writer.php';
 
-/** ชื่อหัวคอลัมน์ของเกรดแต่ละวิชา */
-const GRADE_LABELS = [
-    'grade_math'   => 'คณิตศาสตร์',
-    'grade_sci'    => 'วิทยาศาสตร์',
-    'grade_eng'    => 'ภาษาอังกฤษ',
-    'grade_thai'   => 'ภาษาไทย',
-    'grade_social' => 'สังคมศึกษา',
-    'grade_art'    => 'ศิลปะ',
-];
-
 try {
     $conn = getDbConnection();
 
@@ -60,9 +50,7 @@ try {
     // ---- ดึงผลทุกแถว ----
     $sql = "
         SELECT qr.id, qr.user_id, qr.created_at,
-               qr.mbti_type, qr.avg_grade,
-               qr.grade_math, qr.grade_sci, qr.grade_eng,
-               qr.grade_thai, qr.grade_social, qr.grade_art,
+               qr.mbti_type,
                qr.branch_name, qr.score,
                u.username, u.firstname, u.lastname, u.gender, u.email
         FROM quiz_results qr
@@ -114,8 +102,7 @@ try {
 
     // ---- ชีตที่ 1: ผลการทำแบบทดสอบ ----
     $header = array_merge(
-        ['ลำดับ', 'วันที่ทำ', 'ชื่อผู้ใช้', 'ชื่อ-นามสกุล', 'เพศ', 'อีเมล', 'ผล MBTI', 'เกรดเฉลี่ย'],
-        array_values(GRADE_LABELS),
+        ['ลำดับ', 'วันที่ทำ', 'ชื่อผู้ใช้', 'ชื่อ-นามสกุล', 'เพศ', 'อีเมล', 'ผล MBTI'],
         ['สาขาอันดับ 1', 'คณะอันดับ 1', 'คะแนน 1 (%)',
          'สาขาอันดับ 2', 'คณะอันดับ 2', 'คะแนน 2 (%)',
          'สาขาอันดับ 3', 'คณะอันดับ 3', 'คะแนน 3 (%)']
@@ -126,18 +113,6 @@ try {
 
     foreach ($rows as $r) {
         $no++;
-        $grades = [];
-        $sum    = 0;
-        foreach (array_keys(GRADE_LABELS) as $col) {
-            $g        = (float)$r[$col];
-            $grades[] = $g;
-            $sum     += $g;
-        }
-
-        // แถวเก่าก่อน migration 002 ไม่มี avg_grade เก็บไว้ -> คำนวณให้ตอน export
-        $avg = $r['avg_grade'] !== null
-            ? (float)$r['avg_grade']
-            : round($sum / count(GRADE_LABELS), 2);
 
         $rankCells = [];
         for ($rank = 1; $rank <= 3; $rank++) {
@@ -169,9 +144,7 @@ try {
                 (string)$r['gender'],
                 (string)$r['email'],
                 (string)$r['mbti_type'],
-                $avg,
             ],
-            $grades,
             $rankCells
         );
     }

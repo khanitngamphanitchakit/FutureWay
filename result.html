@@ -41,10 +41,6 @@
       <p class="result-section-title">🎯 สาขาที่เหมาะกับคุณ</p>
       <div id="rank-list" class="rank-list"></div>
 
-      <!-- สรุปเกรด -->
-      <p class="result-section-title">📊 เกรดของคุณ</p>
-      <div class="grade-summary" id="grade-summary"></div>
-
       <!-- ปุ่มทำใหม่ -->
       <a href="quiz.html" class="retry-btn">
         <i class="fas fa-redo"></i> ทำแบบทดสอบใหม่
@@ -81,11 +77,6 @@
   </nav>
 
   <script>
-    const GRADE_LABELS = {
-      math: 'คณิตศาสตร์', sci: 'วิทยาศาสตร์',
-      eng: 'อังกฤษ', thai: 'ไทย',
-      social: 'สังคม', art: 'ศิลปะ'
-    };
     const RANK_STYLES = [
       { cls: 'gold',   label: '🥇' },
       { cls: 'silver', label: '🥈' },
@@ -146,7 +137,7 @@
       document.getElementById('mbti-name').textContent    = info.name;
       document.getElementById('mbti-desc').textContent    = info.desc;
       document.getElementById('avg-grade-display').textContent =
-        `เกรดเฉลี่ย ${data.avg_grade} | วิเคราะห์จาก 6 วิชาหลัก`;
+        'วิเคราะห์จากบุคลิกภาพ MBTI 100%';
 
       // Top 3 สาขา
       const rankList = document.getElementById('rank-list');
@@ -175,15 +166,6 @@
           el.style.width = el.dataset.score + '%';
         });
       }, 300);
-
-      // Grade Summary
-      const gradeWrap = document.getElementById('grade-summary');
-      Object.entries(data.grades).forEach(([key, val]) => {
-        const chip = document.createElement('div');
-        chip.className = 'grade-chip';
-        chip.innerHTML = `${GRADE_LABELS[key]}: <span>${parseFloat(val).toFixed(2)}</span>`;
-        gradeWrap.appendChild(chip);
-      });
 
       // แสดงผล — ใช้ attribute hidden แทนการสั่ง style.display จาก JS
       // สไตล์ทั้งหมดจึงอยู่ในไฟล์ CSS ที่เดียว ไม่กระจายอยู่ใน JS

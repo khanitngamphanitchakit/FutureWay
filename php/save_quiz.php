@@ -32,22 +32,18 @@ try {
 
     // รับ JSON จาก quiz.html
     $input = json_decode(file_get_contents('php://input'), true);
-    if (!$input || !isset($input['grades']) || !isset($input['answers']) || !is_array($input['answers'])) {
+    if (!$input || !isset($input['answers']) || !is_array($input['answers'])) {
         echo json_encode(['success' => false, 'error' => 'ข้อมูลไม่ครบ']);
         exit;
     }
 
-    $grades  = $input['grades'];
     $answers = $input['answers'];
 
-    // ตรวจสอบว่ามี key ของเกรดครบ และมีคำตอบอย่างน้อย 1 ข้อ
-    $requiredSubjects = ['math', 'sci', 'eng', 'thai', 'social', 'art'];
-    foreach ($requiredSubjects as $subj) {
-        if (!isset($grades[$subj])) {
-            echo json_encode(['success' => false, 'error' => "ขาดเกรดวิชา: $subj"]);
-            exit;
-        }
-    }
+    // ไม่รับเกรดจากผู้ใช้แล้ว (คำนวณจาก MBTI 100%)
+    // แต่คอลัมน์ grade_* ใน quiz_results เป็น NOT NULL จึงบันทึก 0.00 แทน
+    $grades = ['math' => 0, 'sci' => 0, 'eng' => 0, 'thai' => 0, 'social' => 0, 'art' => 0];
+
+    // ตรวจสอบว่ามีคำตอบอย่างน้อย 1 ข้อ
     if (count($answers) === 0) {
         echo json_encode(['success' => false, 'error' => 'ไม่พบคำตอบแบบทดสอบ']);
         exit;
@@ -91,7 +87,6 @@ try {
     // (mbti ยังไม่รู้ค่า จนกว่า python จะคำนวณจาก answers ให้)
     // ========================================
     $pythonInput = json_encode([
-        'grades'  => $grades,
         'answers' => $answers
     ]);
 

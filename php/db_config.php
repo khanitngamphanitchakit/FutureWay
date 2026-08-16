@@ -5,12 +5,11 @@
 // ให้ทุกไฟล์ require ตัวนี้แทนการ hardcode ค่าเชื่อมต่อซ้ำๆ
 // ========================================
 
-// อ่านจาก environment variable ก่อน (Railway จะ inject ให้อัตโนมัติ
-// ถ้า service เชื่อมกันในโปรเจกต์เดียวกัน) ถ้าไม่มีให้ fallback
-// ไปใช้ค่า internal host ที่ใช้งานอยู่ตอนนี้
+// อ่านจาก environment variable (Railway จะ inject ให้อัตโนมัติ
+// เมื่อผูกตัวแปร MYSQL* ของ service MySQL เข้ากับ service แอปนี้)
 define('DB_HOST', getenv('MYSQLHOST') ?: 'mysql.railway.internal');
 define('DB_USER', getenv('MYSQLUSER') ?: 'root');
-define('DB_PASS', getenv('MYSQLPASSWORD') ?: 'OLdaGruletpcPRSKSZkUOUrKaUWmDjri');
+define('DB_PASS', getenv('MYSQLPASSWORD') ?: '');
 define('DB_NAME', getenv('MYSQLDATABASE') ?: 'railway');
 define('DB_PORT', (int)(getenv('MYSQLPORT') ?: 3306));
 

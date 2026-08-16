@@ -66,13 +66,12 @@
               <th>อันดับ 1</th>
               <th>อันดับ 2</th>
               <th>อันดับ 3</th>
-              <th>เกรดเฉลี่ย</th>
               <th>วันที่ทำ</th>
               <th></th>
             </tr>
           </thead>
           <tbody id="tbody">
-            <tr><td colspan="9"><div class="state-box"><i class="fas fa-spinner fa-spin"></i>กำลังโหลด...</div></td></tr>
+            <tr><td colspan="8"><div class="state-box"><i class="fas fa-spinner fa-spin"></i>กำลังโหลด...</div></td></tr>
           </tbody>
         </table>
       </div>
@@ -111,7 +110,7 @@
            + ' ' + d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
     };
 
-    const COLS = 9;   // จำนวนคอลัมน์ในตาราง ใช้กับ colspan
+    const COLS = 8;   // จำนวนคอลัมน์ในตาราง ใช้กับ colspan
 
     const showState = (html, isError = false) => {
       document.getElementById('tbody').innerHTML =
@@ -206,7 +205,6 @@
           <td>${rankCell(r, 1)}</td>
           <td>${rankCell(r, 2)}</td>
           <td>${rankCell(r, 3)}</td>
-          <td>${r.avg_grade != null ? Number(r.avg_grade).toFixed(2) : '-'}</td>
           <td class="muted">${fmtDate(r.created_at)}</td>
           <td class="action-cell">
             <button type="button" class="del-btn" title="ลบผลลัพธ์รอบนี้"
@@ -230,17 +228,6 @@
                     <span class="score-pill">${b.score}%</span>
                   </div>`).join('')
                 : '<p class="muted note-old">ผลลัพธ์รอบนี้บันทึกไว้ก่อนระบบเก็บครบ 3 อันดับ</p>'}
-              </div>
-              <div class="detail-block">
-                <h4>เกรดที่กรอก</h4>
-                <div class="grade-chips">
-                  <span>คณิต: ${Number(r.grades.math).toFixed(2)}</span>
-                  <span>วิทย์: ${Number(r.grades.sci).toFixed(2)}</span>
-                  <span>อังกฤษ: ${Number(r.grades.eng).toFixed(2)}</span>
-                  <span>ไทย: ${Number(r.grades.thai).toFixed(2)}</span>
-                  <span>สังคม: ${Number(r.grades.social).toFixed(2)}</span>
-                  <span>ศิลปะ: ${Number(r.grades.art).toFixed(2)}</span>
-                </div>
               </div>
             </div>
           </td>
