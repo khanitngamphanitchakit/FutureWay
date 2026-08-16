@@ -1,0 +1,281 @@
+/* ========================================
+   FutureWay - main.css
+   ไฟล์ฐานของหน้าที่ล็อกอินแล้วทุกหน้า — โหลดเป็นไฟล์แรกเสมอ แล้วค่อยตามด้วย
+   ไฟล์เฉพาะหน้า (profile.css, history.css, settings.css, result.css,
+   quiz.css, chat.css, admin.css, lightbox.css)
+
+   ในนี้มี: ตัวแปรสี, reset, หัวเพจทั้งสองแบบ, กล่องขาว, แถบเมนูล่าง
+            และสไตล์เฉพาะของหน้า main.html
+   ไฟล์นี้ standalone ไม่ต้องโหลด style.css (style.css ใช้กับหน้า
+   index/login/register ที่ยังไม่ได้ล็อกอิน ซึ่งไม่ได้โหลด main.css)
+   ======================================== */
+
+/* -- ตัวแปรสี (copy จาก style.css เพื่อใช้ได้อิสระ) -- */
+:root {
+  --primary:      #7b2ff7;
+  --primary-dark: #4a0080;
+  --white:        #ffffff;
+  --gray:         #aaaaaa;
+  --gray-light:   #f5f5f5;
+  --red:          #e74c3c;   /* สีของปุ่ม/ข้อความเตือน ใช้ร่วมกันหลายหน้า */
+  --transition:   0.2s ease;
+}
+
+/* ========================================
+   Reset & Base
+   ======================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* attribute hidden แพ้กฎ display: flex/grid ที่ประกาศไว้ในไฟล์นี้ (เช่น .menu-item)
+   ต้องบังคับทับ ไม่งั้นของที่สั่งซ่อนไว้จะยังโผล่ เช่นเมนูผู้ดูแลระบบใน profile.html */
+[hidden] { display: none !important; }
+
+body {
+  font-family: 'Kanit', sans-serif;
+  background: #f0f0f5;
+  min-height: 100vh;
+  padding-bottom: 85px;  /* เว้นด้านล่างเผื่อ bottom nav */
+}
+
+/* ========================================
+   Header — แถบด้านบน (ม่วงเข้ม)
+   ======================================== */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;  /* ชื่อซ้าย รูปขวา */
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #7b2ff7 0%, #4a0080 100%);
+}
+
+.welcome-text {
+  color: var(--white);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.profile-pic {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2.5px solid rgba(255,255,255,0.6);
+}
+
+/* ========================================
+   Back Header — หัวเพจแบบมีปุ่มย้อนกลับ
+   ใช้ใน: result.html, quiz.html, History_Results.html,
+          edit_profile.html, change_password.html,
+          notifications.html, privacy.html
+   อยู่ในไฟล์นี้เพราะทุกหน้าโหลด main.css อยู่แล้ว
+   (เดิมประกาศซ้ำ 3 ไฟล์ ทำให้หน้าที่ไม่ได้โหลดไฟล์พวกนั้น
+    เช่น result.html กับ quiz.html ได้หัวเพจที่ไม่มีสไตล์)
+   ======================================== */
+.back-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #7b2ff7 0%, #4a0080 100%);
+}
+.back-header .back-btn {
+  color: var(--white);
+  font-size: 1.1rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+.back-header .page-title {
+  color: var(--white);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+/* ========================================
+   Main Content
+   ======================================== */
+.app-content {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ========================================
+   White Card — กล่องขาวหลัก
+   ======================================== */
+.white-card {
+  background: var(--white);
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: 0 3px 16px rgba(0,0,0,0.09);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* โลโก้ FutureWay ในกล่องขาว — เต็มความกว้างการ์ด สูงตามสัดส่วนรูป */
+.card-logo {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ลิงก์สีแดง */
+.link-title {
+  color: #c0392b;
+  font-weight: 600;
+  font-size: 0.93rem;
+  text-decoration: none;
+  line-height: 1.5;
+}
+.link-title:hover { text-decoration: underline; }
+
+/* แถบสีน้ำเงิน */
+.blue-badge {
+  background: #1e40af;
+  color: var(--white);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* ปุ่มทำแบบทดสอบ */
+.test-btn {
+  background: var(--white);
+  color: var(--primary);
+  border: 2.5px solid var(--primary);
+  border-radius: 12px;
+  padding: 14px;
+  font-family: 'Kanit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;   /* ← เพิ่มบรรทัดนี้ */
+  transition: background var(--transition), color var(--transition);
+}
+.test-btn:hover {
+  background: var(--primary);
+  color: var(--white);
+}
+
+/* ========================================
+   Info Scroll — รูปเลื่อนซ้าย-ขวา
+   ======================================== */
+.info-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.info-scroll::-webkit-scrollbar { display: none; }
+
+.info-img {
+  flex-shrink: 0;
+  width: 240px;
+  height: 145px;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  background: #cccccc;
+  cursor: zoom-in;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.info-img:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+}
+.info-img:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* สไตล์ของ popup ดูรูปเต็มจอ (ตอนกดที่รูปในกล่องสไลด์) อยู่ใน css/lightbox.css
+   ซึ่ง main.html โหลดต่อจากไฟล์นี้ */
+
+/* ========================================
+   Bottom Navigation
+   ======================================== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 65px;
+  background: var(--white);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -3px 16px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-decoration: none;
+  color: var(--gray);
+  font-family: 'Kanit', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  position: relative;
+  transition: color var(--transition);
+  min-width: 64px;
+  text-align: center;
+}
+
+.nav-item i { font-size: 1.3rem; }
+
+/* ปุ่ม active */
+.nav-item.active {
+  color: var(--primary);
+  padding-top: 30px;  /* เว้นบนให้วงกลมลอย */
+}
+
+/* วงกลมม่วงลอยขึ้นมา */
+.icon-circle {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #9b59b6, #7b2ff7);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: -26px;
+  box-shadow: 0 6px 18px rgba(123,47,247,0.45);
+  border: 3px solid var(--white);
+}
+.icon-circle i {
+  color: var(--white);
+  font-size: 1.2rem;
+}
+
+/* ========================================
+   หมายเหตุ: สไตล์ของหน้า profile.html (.hero, .menu-item, .copyright ฯลฯ)
+   เคยถูก copy มาไว้ท้ายไฟล์นี้ ทั้งที่ profile.css มีอยู่ครบแล้วและ profile.html
+   ก็โหลดทั้งสองไฟล์ กลายเป็นของซ้ำสองชุด แก้ที่เดียวไม่ครบ
+   ตอนนี้ย้ายไปอยู่ใน css/profile.css ที่เดียวแล้ว
+   ======================================== */
