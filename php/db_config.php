@@ -5,6 +5,10 @@
 // ให้ทุกไฟล์ require ตัวนี้แทนการ hardcode ค่าเชื่อมต่อซ้ำๆ
 // ========================================
 
+// ฟังก์ชันเวลาฝั่ง PHP (date() ฯลฯ เช่น วันที่ในไฟล์ export) ให้ใช้เวลาไทยด้วย
+// ไม่งั้นบนเซิร์ฟเวอร์ที่เดินเวลาเป็น UTC จะได้เวลาช้ากว่าจริง 7 ชม.
+date_default_timezone_set('Asia/Bangkok');
+
 // อ่านจาก environment variable (Railway จะ inject ให้อัตโนมัติ
 // เมื่อผูกตัวแปร MYSQL* ของ service MySQL เข้ากับ service แอปนี้)
 define('DB_HOST', getenv('MYSQLHOST') ?: 'mysql.railway.internal');
@@ -31,5 +35,12 @@ function getDbConnection(): mysqli {
     }
 
     $conn->set_charset('utf8mb4');
+
+    // เซิร์ฟเวอร์ MySQL (Railway) เดินเวลาเป็น UTC ทำให้เวลาที่บันทึก/อ่านจาก
+    // คอลัมน์ TIMESTAMP (เช่น created_at ของผลแบบทดสอบ) ช้ากว่าเวลาไทย 7 ชม.
+    // ตั้ง time zone ของ session เป็นเวลาไทยที่จุดเดียวตรงนี้ ทุกไฟล์ที่
+    // require db_config.php จะได้เวลาไทยตรงกับตอนที่ผู้ใช้ทำแบบทดสอบเสร็จจริง
+    $conn->query("SET time_zone = '+07:00'");
+
     return $conn;
 }
